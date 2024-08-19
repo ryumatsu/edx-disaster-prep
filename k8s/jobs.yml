@@ -1,0 +1,118 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: lms-job
+  labels:
+    app.kubernetes.io/component: job
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: lms
+        image: docker.io/overhangio/openedx:18.1.2-indigo
+        env:
+        - name: SERVICE_VARIANT
+          value: lms
+        - name: DJANGO_SETTINGS_MODULE
+          value: lms.envs.tutor.production
+        volumeMounts:
+          - mountPath: /openedx/edx-platform/lms/envs/tutor/
+            name: settings-lms
+          - mountPath: /openedx/edx-platform/cms/envs/tutor/
+            name: settings-cms
+          - mountPath: /openedx/config
+            name: config
+      volumes:
+      - name: settings-lms
+        configMap:
+          name: openedx-settings-lms
+      - name: settings-cms
+        configMap:
+          name: openedx-settings-cms
+      - name: config
+        configMap:
+          name: openedx-config
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cms-job
+  labels:
+    app.kubernetes.io/component: job
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: cms
+        image: docker.io/overhangio/openedx:18.1.2-indigo
+        env:
+        - name: SERVICE_VARIANT
+          value: cms
+        - name: DJANGO_SETTINGS_MODULE
+          value: cms.envs.tutor.production
+        volumeMounts:
+          - mountPath: /openedx/edx-platform/lms/envs/tutor/
+            name: settings-lms
+          - mountPath: /openedx/edx-platform/cms/envs/tutor/
+            name: settings-cms
+          - mountPath: /openedx/config
+            name: config
+      volumes:
+      - name: settings-lms
+        configMap:
+          name: openedx-settings-lms
+      - name: settings-cms
+        configMap:
+          name: openedx-settings-cms
+      - name: config
+        configMap:
+          name: openedx-config
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mysql-job
+  labels:
+    app.kubernetes.io/component: job
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: mysql
+        image: docker.io/mysql:8.4.0
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: forum-job
+  labels:
+    app.kubernetes.io/component: job
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: forum
+        image: docker.io/overhangio/openedx-forum:18.0.0
+        env:
+          - name: SEARCH_SERVER
+            value: "http://elasticsearch:9200"
+          - name: MONGODB_AUTH
+            value: ""
+          - name: MONGODB_HOST
+            value: "mongodb"
+          - name: MONGODB_PORT
+            value: "27017"
+          - name: MONGODB_DATABASE
+            value: "cs_comments_service"
+          - name: MONGOID_AUTH_SOURCE
+            value: "admin"
+          - name: MONGOID_AUTH_MECH
+            value: ""
+          - name: MONGOID_USE_SSL
+            value: "false"

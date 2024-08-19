@@ -1,0 +1,20 @@
+services:
+  # Web proxy for load balancing and SSL termination
+  caddy:
+    image: docker.io/caddy:2.7.4
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      
+      - "443:443"
+      # include support for http/3
+      - "443:443/udp"
+      
+    environment:
+      default_site_port: ""
+    volumes:
+      - ../apps/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../../data/caddy:/data
+    
+
+  
